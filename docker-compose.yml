@@ -1,0 +1,51 @@
+version: "3.7"
+
+services:
+  # Define the item-app service
+  item-app:
+    # Pull the image from ghcr.io/erikrios/item-app:v1
+    image: ghcr.io/erikrios/item-app:v1
+    # Applying the restart policy. It will automatically restart when the container is stopped.
+    restart: always
+    # Set the container name
+    container_name: my-item-app
+    # Set the environment variables
+    environment:
+      NODE_ENV: 'production'
+      DB_HOST: 'item-db'
+    # Mapping the port from 8080 into 80
+    ports:
+      - 80:8080
+    # Expost the port 80
+    expose:
+      - 80
+    # It will start when item-db service condition is service_healthy
+    depends_on:
+      item-db:
+        condition: service_healthy
+
+  # Define the item-db service
+  item-db:
+    # Pull the image from mongo:3
+    image: mongo:3
+    # Applying the restart policy. It will automatically restart when the container is stopped.
+    restart: always
+    # Set the container name
+    container_name: my-item-db
+    # Set the environment variables
+    environment:
+      MONGO_INITDB_DATABASE: 'item-db'
+    # Use the app-db volume and targetting to /data/db directory in container
+    volumes:
+      - app-db:/data/db
+    # Doing healthcheck, to make sure the service is ready to used
+    healthcheck:
+     test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+     interval: 10s
+     timeout: 10s
+     retries: 5
+     start_period: 40s
+
+volumes:
+  # Define the app-db volume
+  app-db:
