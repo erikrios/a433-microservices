@@ -40,11 +40,11 @@ services:
       - app-db:/data/db
     # Doing healthcheck, to make sure the service is ready to used
     healthcheck:
-     test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
-     interval: 10s
-     timeout: 10s
-     retries: 5
-     start_period: 40s
+      test:
+      - CMD
+      - mongo
+      - --eval
+      - "db.adminCommand('ping')"
 
 volumes:
   # Define the app-db volume
